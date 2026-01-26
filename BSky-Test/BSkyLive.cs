@@ -3,31 +3,30 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
 
-namespace BSky_Test {
-    static class BSKy_Test {
+namespace BSkyLive {
+    static class BSkyLive {
         private static HttpClient client = new HttpClient();
 
         private const string BSkyLoginHost = "https://inkcap.us-east.host.bsky.network";
-        private const string BSkyUsername = "lumkitty-test.bsky.social";
-        private const string BSkyPassword = "<USE AN APP PASSWORD>";
-        private const string EmbedTitle = "LumKitty-Test";
-        private const string EmbedDesc = "Test test meow";
-        private const string EmbedURL = "https://twitch.tv/LumKitty";
 
+        private static string? BSkyPassword = null;
+        private static string? EmbedTitle = null;
+        private static string? EmbedDesc = null;
+        private static string? EmbedURL = null;
         private static string? BSkyHost = null;
         private static string? AccessToken = null;
         private static string? RefreshToken = null;
         private static string? DID = null;
 
-        private static System.Timers.Timer? SessionRefreshTimer = null;
-        private static System.Timers.Timer? LiveRefreshTimer = null;
-
+        private static System.Timers.Timer SessionRefreshTimer = new System.Timers.Timer();
+        private static System.Timers.Timer LiveRefreshTimer = new System.Timers.Timer();
 
         static void Log(string message) {
             if (AccessToken  != null) { message = message.Replace(AccessToken,  "***ACCESS TOKEN***"); }
@@ -92,7 +91,7 @@ namespace BSky_Test {
                         PatchResult.Dispose();
                         break;
                 }
-                // Log(Response); // *** MAY LEAK PASSWORDS IF ENABLED
+                // Log(Response);
                 return JsonConvert.DeserializeObject<JObject>(Response);
             } catch (Exception e) {
                 ErrorHandler(e);
@@ -100,8 +99,8 @@ namespace BSky_Test {
             }
         }
 
-
-        static void ConnectBSky(string Username, string Password) {
+        public static void ConnectBSky(string Username, string Password) {
+            BSkyPassword = Password;
             string URL = BSkyLoginHost + "/xrpc/com.atproto.server.createSession";
             JObject Result;
             JObject Body = new JObject(
@@ -115,6 +114,9 @@ namespace BSky_Test {
             Log(Result.ToString());
             BSkyHost = Result["didDoc"]["service"][0]["serviceEndpoint"].ToString();
             Log ("BSky API host: " + BSkyHost);
+            
+            SessionRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(SessionRefreshHandler);
+            SessionRefreshTimer.Interval = 1 * 60000;
             SessionRefreshTimer.Enabled = true;
         }
 
@@ -127,7 +129,7 @@ namespace BSky_Test {
             Log(Result.ToString());
         }
 
-        private static void GoLive(bool FirstRun = true) {
+        private static void GoLive() {
             string URL = BSkyHost + "/xrpc/com.atproto.repo.putRecord";
             JObject Result;
 
@@ -159,9 +161,16 @@ namespace BSky_Test {
             );
             Result = HttpRequest("POST", URL, Body, AccessToken);
             Log(Result.ToString());
-            if (FirstRun) { LiveRefreshTimer.Enabled = true; }
         }
-        private static void EndGoLive() {
+        public static void GoLive(string URL, string Title, string Desc) {
+            EmbedURL = URL;
+            EmbedTitle = Title;
+            EmbedDesc = Desc;
+            GoLive();
+            LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
+            LiveRefreshTimer.Interval = 1 * 60000;
+        }
+        public static void EndGoLive() {
             string URL = BSkyHost + "/xrpc/com.atproto.repo.deleteRecord";
             JObject Result;
 
@@ -179,30 +188,7 @@ namespace BSky_Test {
             RefreshBSky();
         }
         private static void LiveRefreshHandler(object source, ElapsedEventArgs e) {
-            GoLive(false);
-        }
-
-        static void Main() {
-            SessionRefreshTimer = new System.Timers.Timer();
-            SessionRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(SessionRefreshHandler);
-            SessionRefreshTimer.Interval = 1 * 60000;
-
-            LiveRefreshTimer = new System.Timers.Timer();
-            LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
-            LiveRefreshTimer.Interval = 1 * 60000;
-
-            Log("Connecting to BlueSky...");
-            ConnectBSky(BSkyUsername, BSkyPassword);
-
-            Console.WriteLine("Press enter to go live");
-            Console.ReadLine();
-            Log("Going live");
             GoLive();
-
-            Console.WriteLine("Press enter to end live");
-            Console.ReadLine();
-            Log("Ending go live");
-            EndGoLive();
         }
     }
 }
