@@ -189,7 +189,7 @@ namespace BSky_Test {
 
             LiveRefreshTimer = new System.Timers.Timer();
             LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
-            LiveRefreshTimer.Interval = 1 * 60000;
+            LiveRefreshTimer.Interval = 60 * 60000;
 
             Log("Connecting to BlueSky...");
             ConnectBSky(BSkyUsername, BSkyPassword);
