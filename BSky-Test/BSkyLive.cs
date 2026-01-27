@@ -27,6 +27,13 @@ namespace BSkyLive {
 
         private static System.Timers.Timer SessionRefreshTimer = new System.Timers.Timer();
         private static System.Timers.Timer LiveRefreshTimer = new System.Timers.Timer();
+        
+        static BSkyLive() {
+            SessionRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(SessionRefreshHandler);
+            SessionRefreshTimer.Interval = 60 * 60000; //1 hr
+            LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
+            LiveRefreshTimer.Interval = 1 * 60000; // 1 min
+        }
 
         static void Log(string message) {
             if (AccessToken  != null) { message = message.Replace(AccessToken,  "***ACCESS TOKEN***"); }
@@ -114,9 +121,6 @@ namespace BSkyLive {
             Log(Result.ToString());
             BSkyHost = Result["didDoc"]["service"][0]["serviceEndpoint"].ToString();
             Log ("BSky API host: " + BSkyHost);
-            
-            SessionRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(SessionRefreshHandler);
-            SessionRefreshTimer.Interval = 60 * 60000; //1 hr
             SessionRefreshTimer.Enabled = true;
         }
 
@@ -167,11 +171,10 @@ namespace BSkyLive {
             EmbedTitle = Title;
             EmbedDesc = Desc;
             GoLive();
-            LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
-            LiveRefreshTimer.Interval = 1 * 60000; // 1 min
             LiveRefreshTimer.Enabled = true;
         }
         public static void EndGoLive() {
+            LiveRefreshTimer.Enabled = false;
             string URL = BSkyHost + "/xrpc/com.atproto.repo.deleteRecord";
             JObject Result;
 
@@ -182,7 +185,6 @@ namespace BSkyLive {
             );
             Result = HttpRequest("POST", URL, Body, AccessToken);
             Log(Result.ToString());
-            LiveRefreshTimer.Enabled = false;
         }
 
         private static void SessionRefreshHandler(object source, ElapsedEventArgs e) {

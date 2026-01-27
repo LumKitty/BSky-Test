@@ -11,7 +11,7 @@ using static BSkyLive.BSkyLive;
 
 namespace BSky_Test {
     class BSky_Test {
-        const string Version = "0.1-beta";
+        const string Version = "0.2-beta";
         public static int Main(string[] args) {
             Console.WriteLine("LumKitty's BlueSky GoLive tool v" + Version);
             Console.WriteLine();
