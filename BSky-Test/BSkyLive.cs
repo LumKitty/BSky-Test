@@ -116,7 +116,7 @@ namespace BSkyLive {
             Log ("BSky API host: " + BSkyHost);
             
             SessionRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(SessionRefreshHandler);
-            SessionRefreshTimer.Interval = 1 * 60000;
+            SessionRefreshTimer.Interval = 60 * 60000; //1 hr
             SessionRefreshTimer.Enabled = true;
         }
 
@@ -142,7 +142,7 @@ namespace BSkyLive {
                         new JProperty("$type", "app.bsky.actor.status"),
                         new JProperty("createdAt", DateTime.UtcNow),
                         new JProperty("status", "app.bsky.actor.status#live"),
-                        new JProperty("durationMinutes", 2),
+                        new JProperty("durationMinutes", 5),
                         new JProperty("embed",
                             new JObject(
                                 new JProperty("$type", "app.bsky.embed.external"),
@@ -168,7 +168,8 @@ namespace BSkyLive {
             EmbedDesc = Desc;
             GoLive();
             LiveRefreshTimer.Elapsed += new System.Timers.ElapsedEventHandler(LiveRefreshHandler);
-            LiveRefreshTimer.Interval = 1 * 60000;
+            LiveRefreshTimer.Interval = 1 * 60000; // 1 min
+            LiveRefreshTimer.Enabled = true;
         }
         public static void EndGoLive() {
             string URL = BSkyHost + "/xrpc/com.atproto.repo.deleteRecord";
