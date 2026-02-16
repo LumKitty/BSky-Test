@@ -1,4 +1,9 @@
-﻿# BlueSky go-live commandline tool test
+## THIS WAS JUST A TEST. YOU PROBABLY WANT THIS REPO INSTEAD!
+https://github.com/LumKitty/BSKyLive/
+
+## Original readme below:
+ 
+# BlueSky go-live commandline tool test
 
 This is a barebones proof of concept. But aims to be more useful than the manual method. I'll probably turn it into a plugin at some point
 
